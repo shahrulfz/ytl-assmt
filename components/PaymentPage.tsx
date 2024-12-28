@@ -1,12 +1,14 @@
 import React, { useState, useRef } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native"; // Import navigation hook
 import BiometricAuth from "./BiometricAuth"; // Biometric Authentication Component
 import ConfirmationScreen from "./ConfirmationScreen"; // Confirmation screen component
 import { processTransaction } from "../api/transactionApi"; // Mock API call for transaction processing
 import { Picker } from "@react-native-picker/picker"; // Correct import for Picker
 
 const PaymentPage: React.FC = () => {
+  const navigation = useNavigation(); // Hook to access navigation
   const [balance, setBalance] = useState<number>(1000);
   const [recipientAccount, setRecipientAccount] = useState<string>("");
   const [amount, setAmount] = useState<string>("0"); // Default to 0.00
@@ -78,17 +80,24 @@ const PaymentPage: React.FC = () => {
       setConfirmation(
         `RM${parsedAmount} sent to ${recipientAccount} via ${transactionType}.`
       );
-      setErrorMessage(""); // Clear error message on successful transaction
+      setErrorMessage("");
+
+      setTimeout(() => {
+        navigation.navigate("Dashboard");
+      }, 2000); // Optional delay to show confirmation message
     } catch (error) {
       setConfirmation("Transaction failed, please try again.");
       setErrorMessage(""); // Clear error message on failure
     }
   };
 
-  if (confirmation != "") {
+  if (confirmation) {
     return (
       <ConfirmationScreen
-        onDone={() => setConfirmation("")}
+        onDone={() => {
+          setConfirmation("");
+          navigation.navigate("Dashboard");
+        }}
         details={confirmation}
       />
     );
