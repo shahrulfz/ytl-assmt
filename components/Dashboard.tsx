@@ -6,13 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient"; // Gradient
 import { useNavigation } from "@react-navigation/native"; // Navigation hook
 
 const Dashboard: React.FC = () => {
   const navigation = useNavigation();
-
   const navigateToPage = (page: string) => {
     navigation.navigate(page);
   };
@@ -25,35 +25,39 @@ const Dashboard: React.FC = () => {
       <Text style={styles.title}>My Digital Bank</Text>
 
       {/* Horizontal ScrollView for tiles */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.tilesContainer}>
-          {/* Tile for Payment */}
-          <TouchableOpacity
-            style={styles.tile}
-            onPress={() => navigateToPage("Payment")}
-          >
-            <Text style={styles.tileText}>Payment</Text>
-          </TouchableOpacity>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tilesContainer}
+      >
+        {/* Tile for Payment */}
+        <TouchableOpacity
+          style={styles.tile}
+          onPress={() => navigateToPage("Payment")}
+        >
+          <Text style={styles.tileText}>Payment</Text>
+        </TouchableOpacity>
 
-          {/* Blank Page Tiles */}
-          <TouchableOpacity
-            style={styles.tile}
-            onPress={() => navigateToPage("Blank")}
-          >
-            <Text style={styles.tileText}>Loan</Text>
-          </TouchableOpacity>
+        {/* Blank Page Tiles */}
+        <TouchableOpacity
+          style={styles.tile}
+          onPress={() => navigateToPage("Blank")}
+        >
+          <Text style={styles.tileText}>Loan</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.tile}
-            onPress={() => navigateToPage("Blank")}
-          >
-            <Text style={styles.tileText}>Investment</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.tile}
+          onPress={() => navigateToPage("Blank")}
+        >
+          <Text style={styles.tileText}>Investment</Text>
+        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
 };
+
+const { width } = Dimensions.get("window"); // Get the screen width
 
 const styles = StyleSheet.create({
   container: {
@@ -71,13 +75,14 @@ const styles = StyleSheet.create({
   },
   tilesContainer: {
     flexDirection: "row", // Horizontal layout for tiles
-    justifyContent: "space-around", // Evenly distribute tiles
+    justifyContent: "flex-start", // Start the tiles from the left
     alignItems: "center",
+    paddingHorizontal: 10, // Add some padding inside the ScrollView
   },
   tile: {
     backgroundColor: "#fff",
-    width: 100, // Smaller tile width
-    height: 100, // Smaller tile height
+    width: Math.min(100, width * 0.25), // Dynamically adjust tile width
+    height: 100,
     margin: 10,
     borderRadius: 10,
     justifyContent: "center",

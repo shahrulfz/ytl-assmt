@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, TextInput, Button, Alert, Platform } from "react-native";
+import { View, Text, TextInput, Button, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import BiometricAuth from "./BiometricAuth"; // Biometric Authentication Component
 import ConfirmationScreen from "./ConfirmationScreen"; // Confirmation screen component
@@ -9,7 +9,7 @@ import { Picker } from "@react-native-picker/picker"; // Correct import for Pick
 const PaymentPage: React.FC = () => {
   const [balance, setBalance] = useState<number>(1000);
   const [recipientAccount, setRecipientAccount] = useState<string>("");
-  const [amount, setAmount] = useState<string>("0.00"); // Default to 0.00
+  const [amount, setAmount] = useState<string>("0"); // Default to 0.00
   const [transactionType, setTransactionType] = useState<string>("duitnow"); // Default to 'duitnow'
   const [note, setNote] = useState<string>("");
   const [authenticated, setAuthenticated] = useState<boolean>(false);
@@ -22,12 +22,11 @@ const PaymentPage: React.FC = () => {
 
   // Helper function to format number to currency (RM)
   const formatCurrency = (value: string): string => {
-    // Remove any non-numeric characters except for decimal point
     const numericValue = value.replace(/[^0-9.]/g, "");
     const floatValue = parseFloat(numericValue);
 
     if (isNaN(floatValue)) {
-      return "0.00";
+      return "0";
     }
 
     return floatValue
@@ -36,7 +35,7 @@ const PaymentPage: React.FC = () => {
         currency: "MYR",
       })
       .replace("RM", "")
-      .trim(); // Remove 'RM' as we add it manually
+      .trim();
   };
 
   // Handle form submit
@@ -86,7 +85,7 @@ const PaymentPage: React.FC = () => {
     }
   };
 
-  if (confirmation) {
+  if (confirmation != "") {
     return (
       <ConfirmationScreen
         onDone={() => setConfirmation("")}
@@ -97,8 +96,13 @@ const PaymentPage: React.FC = () => {
 
   // Handle amount input changes and ensure it formats correctly
   const handleAmountChange = (text: string) => {
-    let formattedAmount = formatCurrency(text);
+    let formattedAmount = text.replace(/[^0-9.]/g, "");
     setAmount(formattedAmount);
+  };
+
+  // Function to handle cursor positioning
+  const handleFocus = () => {
+    setAmount("");
   };
 
   return (
@@ -134,7 +138,9 @@ const PaymentPage: React.FC = () => {
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#333" }}>
             Current Balance
           </Text>
-          <Text style={{ fontSize: 24, color: "#4c669f" }}>RM {balance}</Text>
+          <Text style={{ fontSize: 24, color: "#4c669f" }}>
+            RM {formatCurrency(balance.toString())}
+          </Text>
         </View>
 
         {/* Recipient Account Field */}
@@ -171,13 +177,14 @@ const PaymentPage: React.FC = () => {
             paddingHorizontal: 10,
             fontSize: 16,
             color: "white",
-            textAlign: "left", // Align text to the right
+            textAlign: "right", // Align text to the right
           }}
-          placeholder="0.00"
+          placeholder="0"
           placeholderTextColor="#aaa"
           keyboardType="numeric"
           value={amount}
           onChangeText={handleAmountChange}
+          onFocus={handleFocus} // Ensures cursor stays at the rightmost position when focused
         />
 
         {/* Transaction Type Dropdown */}
@@ -195,7 +202,7 @@ const PaymentPage: React.FC = () => {
         >
           <Picker
             selectedValue={transactionType}
-            style={{ height: 45, fontSize: 16 }}
+            style={{ height: 60, fontSize: 16 }}
             onValueChange={(itemValue) => setTransactionType(itemValue)}
           >
             <Picker.Item label="DuitNow" value="duitnow" />
