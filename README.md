@@ -1,65 +1,79 @@
-Setup Instructions
+## Setup Instructions
 
-Prerequisites
+### Prerequisites
 
-Node.js: Ensure you have Node.js installed on your machine.
+1. **Node.js**: Ensure you have Node.js installed on your machine.
+2. **Expo CLI**: Install Expo CLI globally:
+   ```bash
+   npm install -g expo-cli
+   ```
+3. **Android Emulator or Device**:
+   - For Android Emulator, ensure it has biometric capabilities enabled.
+   - For physical devices, ensure biometric authentication is set up.
 
-Expo CLI: Install Expo CLI globally:
+### Installation
 
-npm install -g expo-cli
+1. Clone this repository:
 
-Android Emulator or Device:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
 
-For Android Emulator, ensure it has biometric capabilities enabled.
+2. Install dependencies:
 
-For physical devices, ensure biometric authentication is set up.
+   ```bash
+   npm install
+   ```
 
-Installation
+3. Start the development server:
 
-Clone this repository:
+   ```bash
+   expo start
+   ```
 
-git clone <repository-url>
-cd <repository-directory>
+4. Run the app:
 
-Install dependencies:
+   - On an Android Emulator or physical device with biometric support.
+   - Use the Expo Go app for quick testing.
 
-npm install
+### Biometric Setup for Android Emulator
 
-Start the development server:
+1. Open Android Virtual Device Manager.
+2. Edit your emulator and enable "Fingerprint" support.
+3. Set up biometric credentials in the emulator by navigating to Settings > Security > Fingerprint.
 
-expo start
+## Design Decisions
 
-Run the app:
+### 1. **Biometric Authentication**
 
-On an Android Emulator or physical device with biometric support.
+- Chose `expo-local-authentication` for seamless integration with Expo apps.
+- Fallback support (e.g., PIN) ensures functionality on devices without biometric capabilities.
 
-Use the Expo Go app for quick testing.
+### 2. **Currency Formatting**
 
-Biometric Setup for Android Emulator
+- Used `toLocaleString` to display amounts in MYR format for user clarity and compliance with local conventions.
 
-Open Android Virtual Device Manager.
+### 3. **Separation of Concerns**
 
-Edit your emulator and enable "Fingerprint" support.
+- Modularized the app into reusable components:
+  - `PaymentPage` handles payment logic and UI.
+  - `BiometricAuth` manages biometric authentication.
+  - `ConfirmationScreen` displays the result of transactions.
 
-Set up biometric credentials in the emulator by navigating to Settings > Security > Fingerprint.
+### 4. **Error Handling**
 
-Design Decisions
+- Added user-friendly error messages for form validation and failed authentication attempts.
 
-1. Biometric Authentication
+### 5. **Styling**
 
-Chose expo-local-authentication for seamless integration with Expo apps.
+- Used `LinearGradient` for a modern UI aesthetic.
+- Incorporated input field placeholders and dynamic error messages for improved UX.
 
-Fallback support (e.g., PIN) ensures functionality on devices without biometric capabilities.
+## Challenges Faced
 
-2. Currency Formatting
+- **Biometric Setup in Emulator**: Configuring biometric support in Android and IOS emulators required extra steps to simulate authentication.
+- **Dynamic Currency Formatting**: Ensuring input validation and currency formatting remained consistent during user interactions.
 
-Used toLocaleString to display amounts in MYR format for user clarity and compliance with local conventions.
 
-3. Separation of Concerns
-
-Modularized the app into reusable components:
-
-PaymentPage handles payment logic and UI.
-
-BiometricAuth manages biometric authentication.
 
