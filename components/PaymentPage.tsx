@@ -1,21 +1,16 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, TextInput, Button, Alert, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import BiometricAuth from "./BiometricAuth"; // Biometric Authentication Component
 import ConfirmationScreen from "./ConfirmationScreen"; // Confirmation screen component
 import { processTransaction } from "../api/transactionApi"; // Mock API call for transaction processing
-
-type PaymentData = {
-  recipientAccount: string;
-  amount: string;
-  transactionType: string;
-};
+import { Picker } from "@react-native-picker/picker"; // Correct import for Picker
 
 const PaymentPage: React.FC = () => {
   const [balance, setBalance] = useState<number>(1000);
   const [recipientAccount, setRecipientAccount] = useState<string>("");
-  const [amount, setAmount] = useState<string>("");
-  const [transactionType, setTransactionType] = useState<string>("");
+  const [amount, setAmount] = useState<string>("0.00"); // Default to 0.00
+  const [transactionType, setTransactionType] = useState<string>("duitnow"); // Default to 'duitnow'
   const [note, setNote] = useState<string>("");
   const [authenticated, setAuthenticated] = useState<boolean>(false);
   const [confirmation, setConfirmation] = useState<string>("");
@@ -23,7 +18,29 @@ const PaymentPage: React.FC = () => {
   const [isPaymentButtonClicked, setIsPaymentButtonClicked] =
     useState<boolean>(false);
 
-  const handleFormSubmit = async () => {
+  const amountInputRef = useRef<TextInput | null>(null); // Reference for the amount input
+
+  // Helper function to format number to currency (RM)
+  const formatCurrency = (value: string): string => {
+    // Remove any non-numeric characters except for decimal point
+    const numericValue = value.replace(/[^0-9.]/g, "");
+    const floatValue = parseFloat(numericValue);
+
+    if (isNaN(floatValue)) {
+      return "0.00";
+    }
+
+    return floatValue
+      .toLocaleString("en-MY", {
+        style: "currency",
+        currency: "MYR",
+      })
+      .replace("RM", "")
+      .trim(); // Remove 'RM' as we add it manually
+  };
+
+  // Handle form submit
+  const handleFormSubmit = () => {
     // Validate required fields
     if (!recipientAccount || !amount || !transactionType) {
       setErrorMessage(
@@ -43,26 +60,30 @@ const PaymentPage: React.FC = () => {
       return;
     }
 
-    if (isPaymentButtonClicked) {
-      setIsPaymentButtonClicked(false); // Reset button click state after biometric auth
-      try {
-        await processTransaction(parsedAmount); // Simulate API call for transaction
-        setBalance(balance - parsedAmount);
-        setConfirmation(
-          `$${parsedAmount} sent to ${recipientAccount} via ${transactionType}.`
-        );
-        setErrorMessage(""); // Clear error message on successful transaction
-      } catch (error) {
-        setConfirmation("Transaction failed, please try again.");
-        setErrorMessage(""); // Clear error message on failure
-      }
-    }
+    // Proceed to Biometric Authentication
+    setIsPaymentButtonClicked(true); // Trigger the biometric authentication after form validation
   };
 
+  // Handle biometric authentication
   const handleBiometricAuthenticate = () => {
-    setIsPaymentButtonClicked(true);
-    // Trigger biometric authentication
     setAuthenticated(true); // Simulating biometric authentication success
+  };
+
+  // Process the payment after biometric authentication
+  const processPayment = async () => {
+    const parsedAmount = parseFloat(amount);
+
+    try {
+      await processTransaction(parsedAmount); // Simulate API call for transaction
+      setBalance(balance - parsedAmount);
+      setConfirmation(
+        `RM${parsedAmount} sent to ${recipientAccount} via ${transactionType}.`
+      );
+      setErrorMessage(""); // Clear error message on successful transaction
+    } catch (error) {
+      setConfirmation("Transaction failed, please try again.");
+      setErrorMessage(""); // Clear error message on failure
+    }
   };
 
   if (confirmation) {
@@ -73,6 +94,12 @@ const PaymentPage: React.FC = () => {
       />
     );
   }
+
+  // Handle amount input changes and ensure it formats correctly
+  const handleAmountChange = (text: string) => {
+    let formattedAmount = formatCurrency(text);
+    setAmount(formattedAmount);
+  };
 
   return (
     <LinearGradient
@@ -107,7 +134,7 @@ const PaymentPage: React.FC = () => {
           <Text style={{ fontSize: 16, fontWeight: "bold", color: "#333" }}>
             Current Balance
           </Text>
-          <Text style={{ fontSize: 24, color: "#4c669f" }}>${balance}</Text>
+          <Text style={{ fontSize: 24, color: "#4c669f" }}>RM {balance}</Text>
         </View>
 
         {/* Recipient Account Field */}
@@ -132,8 +159,9 @@ const PaymentPage: React.FC = () => {
         />
 
         {/* Amount Field */}
-        <Text style={{ color: "white", marginBottom: 10 }}>Amount:</Text>
+        <Text style={{ color: "white", marginBottom: 10 }}>Amount (RM):</Text>
         <TextInput
+          ref={amountInputRef}
           style={{
             height: 45,
             borderColor: "gray",
@@ -143,12 +171,13 @@ const PaymentPage: React.FC = () => {
             paddingHorizontal: 10,
             fontSize: 16,
             color: "white",
+            textAlign: "left", // Align text to the right
           }}
-          placeholder="Enter amount"
+          placeholder="0.00"
           placeholderTextColor="#aaa"
           keyboardType="numeric"
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={handleAmountChange}
         />
 
         {/* Transaction Type Dropdown */}
@@ -158,26 +187,23 @@ const PaymentPage: React.FC = () => {
         <View
           style={{
             borderWidth: 1,
-            borderColor: "gray",
+            borderColor: "#4c669f",
             borderRadius: 8,
             marginBottom: 15,
+            backgroundColor: "#3b5998",
           }}
         >
-          <TextInput
-            style={{
-              height: 45,
-              paddingHorizontal: 10,
-              fontSize: 16,
-              color: "white",
-            }}
-            placeholder="Select transaction type"
-            placeholderTextColor="#aaa"
-            value={transactionType}
-            onChangeText={setTransactionType}
-          />
+          <Picker
+            selectedValue={transactionType}
+            style={{ height: 45, fontSize: 16 }}
+            onValueChange={(itemValue) => setTransactionType(itemValue)}
+          >
+            <Picker.Item label="DuitNow" value="duitnow" />
+            <Picker.Item label="Credit Card" value="creditcard" />
+          </Picker>
         </View>
 
-        {/* Error Message */}
+        {/* Error Message Display */}
         <Text
           style={{
             color: "red",
@@ -213,14 +239,17 @@ const PaymentPage: React.FC = () => {
         {/* Submit Button (Submit Payment) */}
         <Button
           title="Submit Payment"
-          onPress={handleBiometricAuthenticate}
+          onPress={handleFormSubmit}
           color="#4c669f"
         />
 
         {/* Biometric Authentication */}
         {isPaymentButtonClicked && !authenticated && (
-          <BiometricAuth onAuthenticate={() => setAuthenticated(true)} />
+          <BiometricAuth onAuthenticate={handleBiometricAuthenticate} />
         )}
+
+        {/* Process the payment after authentication */}
+        {authenticated && isPaymentButtonClicked && processPayment()}
       </View>
     </LinearGradient>
   );
