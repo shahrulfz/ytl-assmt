@@ -18,6 +18,7 @@
     "react-dom": "18.3.1",
     "react-hook-form": "^7.54.2",
     "react-native": "0.76.5",
+    "react-native-biometrics": "^3.0.1",
     "react-native-web": "~0.19.13",
     "yup": "^1.6.1"
   },

@@ -1,93 +1,40 @@
-import React from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
-import * as Yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
+import React, { useState } from 'react';
+import { View, TextInput, Button, Text } from 'react-native';
 
-interface PaymentFormData {
-  recipient: string;
-  amount: string;
-  note?: string;
+interface PaymentFormProps {
+  onSubmit: (data: { recipient: string; amount: string }) => void;
 }
 
-const schema = Yup.object().shape({
-  recipient: Yup.string().required('Recipient is required'),
-  amount: Yup.number().positive('Amount must be positive').required('Amount is required'),
-  note: Yup.string().optional(),
-});
+const PaymentForm: React.FC<PaymentFormProps> = ({ onSubmit }) => {
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
 
-const PaymentForm: React.FC<{ onSubmit: (data: PaymentFormData) => void }> = ({ onSubmit }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm<PaymentFormData>({
-    resolver: yupResolver(schema),
-  });
+  const handleSubmit = () => {
+    if (!recipient || !amount) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+    onSubmit({ recipient, amount });
+  };
 
   return (
-    <View style={styles.container}>
-      <Text>Recipient:</Text>
-      <Controller
-        control={control}
-        name="recipient"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Enter recipient"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+    <View>
+      <TextInput
+        placeholder="Recipient"
+        style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
+        value={recipient}
+        onChangeText={setRecipient}
       />
-      {errors.recipient && <Text style={styles.error}>{errors.recipient.message}</Text>}
-
-      <Text>Amount:</Text>
-      <Controller
-        control={control}
-        name="amount"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Enter amount"
-            keyboardType="numeric"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
+      <TextInput
+        placeholder="Amount"
+        style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
+        value={amount}
+        onChangeText={setAmount}
+        keyboardType="numeric"
       />
-      {errors.amount && <Text style={styles.error}>{errors.amount.message}</Text>}
-
-      <Text>Note (Optional):</Text>
-      <Controller
-        control={control}
-        name="note"
-        render={({ field: { onChange, value } }) => (
-          <TextInput
-            style={styles.input}
-            placeholder="Add a note"
-            onChangeText={onChange}
-            value={value}
-          />
-        )}
-      />
-
-      <Button title="Submit" onPress={handleSubmit(onSubmit)} />
+      <Button title="Submit" onPress={handleSubmit} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 20,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  error: {
-    color: 'red',
-    marginBottom: 10,
-  },
-});
 
 export default PaymentForm;
